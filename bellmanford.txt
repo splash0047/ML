@@ -1,0 +1,190 @@
+#include <iostream>
+#include <vector>
+#include <limits.h>
+using namespace std;
+
+struct Edge {
+    int u, v, weight;
+};
+
+bool Bellman_Ford(const vector<Edge>& edges, int V, int source) {
+    vector<int> distance(V, INT_MAX);
+    vector<int> parent(V, -1);
+    distance[source] = 0;
+
+    // Relax edges V-1 times
+    for (int i = 0; i < V - 1; i++) {
+        for (const auto& edge : edges) {
+            int u = edge.u;
+            int v = edge.v;
+            int weight = edge.weight;
+            if (distance[u] != INT_MAX && distance[u] + weight < distance[v]) {
+                distance[v] = distance[u] + weight;
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Check for negative-weight cycles
+    for (const auto& edge : edges) {
+        int u = edge.u;
+        int v = edge.v;
+        int weight = edge.weight;
+        if (distance[u] != INT_MAX && distance[u] + weight < distance[v]) {
+            cout << "\nNegative weight cycle exists\n";
+            return false;
+        }
+    }
+
+    // Output results
+    cout << "Vertex -> Cost, Parent\n";
+    for (int i = 0; i < V; i++) {
+        cout << "Vertex " << i + 1 << " -> Cost = " << distance[i] 
+             << ", Parent = " << (parent[i] == -1 ? -1 : parent[i] + 1) << endl;
+    }
+    return true;
+}
+
+int main() {
+    int V;
+    cout << "BELLMAN FORD\n";
+    cout << "Enter the number of vertices: ";
+    cin >> V;
+
+    vector<Edge> edges;
+    cout << "Enter the graph as an adjacency matrix (0 for no edge):\n";
+    for (int i = 0; i < V; i++) {
+        for (int j = 0; j < V; j++) {
+            int weight;
+            cin >> weight;
+            if (weight != 0) {
+                edges.push_back({i, j, weight});
+            }
+        }
+    }
+
+    int source;
+    cout << "Enter source vertex: ";
+    cin >> source;
+    source -= 1;  // Convert to 0-based index
+
+    if (Bellman_Ford(edges, V, source)) {
+        cout << "\nNo negative weight cycle\n";
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <limits>
+using namespace std;
+
+struct Edge { int u, v, weight; };
+
+// Returns pair: (hasNoNegativeCycle, (distances, parents))
+pair<bool, pair<vector<long long>, vector<int>>> BellmanFord(
+    const vector<Edge>& edges, int V, int source) {
+
+    const long long INF = numeric_limits<long long>::max() / 4;
+    vector<long long> dist(V, INF);
+    vector<int> parent(V, -1);
+    dist[source] = 0;
+
+    // Relax edges V-1 times
+    for (int i = 0; i < V - 1; ++i) {
+        bool changed = false;
+        for (const auto &e : edges) {
+            if (dist[e.u] != INF && dist[e.u] + e.weight < dist[e.v]) {
+                dist[e.v] = dist[e.u] + e.weight;
+                parent[e.v] = e.u;
+                changed = true;
+            }
+        }
+        if (!changed) break; // optimization: stop early if no change
+    }
+
+    // Check for negative-weight cycles
+    for (const auto &e : edges) {
+        if (dist[e.u] != INF && dist[e.u] + e.weight < dist[e.v]) {
+            return {false, {dist, parent}}; // negative cycle detected
+        }
+    }
+
+    return {true, {dist, parent}};
+}
+
+void printPath(const vector<int>& parent, int v) {
+    if (v == -1) return;
+    vector<int> path;
+    for (int cur = v; cur != -1; cur = parent[cur]) path.push_back(cur);
+    reverse(path.begin(), path.end());
+    for (size_t i = 0; i < path.size(); ++i) {
+        if (i) cout << " -> ";
+        cout << path[i] + 1; // print 1-based
+    }
+}
+
+int main() {
+    cout << "BELLMAN-FORD (directed graph via adjacency matrix input)\n";
+    int V;
+    cout << "Enter number of vertices: ";
+    if (!(cin >> V) || V <= 0) return 0;
+
+    cout << "Enter adjacency matrix (enter 0 for no edge):\n";
+    vector<Edge> edges;
+    for (int i = 0; i < V; ++i) {
+        for (int j = 0; j < V; ++j) {
+            int w; cin >> w;
+            if (w != 0) edges.push_back({i, j, w});
+        }
+    }
+
+    int src;
+    cout << "Enter source vertex (1-based): ";
+    cin >> src;
+    if (src < 1 || src > V) return 0;
+    src -= 1;
+
+    auto result = BellmanFord(edges, V, src);
+    bool ok = result.first;
+    auto dist = result.second.first;
+    auto parent = result.second.second;
+
+    if (!ok) {
+        cout << "\nNegative weight cycle detected (reachable from source).\n";
+        return 0;
+    }
+
+    cout << "\nVertex | Distance | Parent | Path(from source)\n";
+    const long long INF = numeric_limits<long long>::max() / 4;
+    for (int i = 0; i < V; ++i) {
+        cout << "  " << i+1 << "    | ";
+        if (dist[i] == INF) cout << " INF     | ";
+        else cout << setw(8) << dist[i] << " | ";
+        if (parent[i] == -1) cout << "  -   | ";
+        else cout << setw(3) << parent[i]+1 << "   | ";
+        if (dist[i] == INF) cout << "   -\n";
+        else { printPath(parent, i); cout << '\n'; }
+    }
+
+    cout << "\nNo negative weight cycle detected (reachable portion).\n";
+    return 0;
+}
+
+
+Number of vertices: 5
+Adjacency matrix:
+0 6 0 7 0
+0 0 5 8 -4
+0 -2 0 0 0
+0 0 -3 0 9
+0 0 0 0 0
+Source: 1
+
+

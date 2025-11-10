@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+const int n = 8;
+bool isSafe(vector<vector<int> >& board, int row, int col){
+for (int x=0; x<col; x++)
+if (board[row][x] == 1) return false;
+for (int x=row, y=col; x >= 0 && y >= 0; x--, y--)
+if (board[x][y] == 1) return false;
+for (int x=row, y=col; x<n&& y >= 0; x++, y--)
+if (board[x][y] == 1) return false;
+return true;
+}
+bool solveNQueens(vector<vector<int> >& board, int col){
+if (col == n) {
+for (int i=0; i<n; i++) {
+for (int j=0; j<n; j++) {
+if (board[i][j] == 0) cout << "_" << " ";
+else if (board[i][j] == 1) cout << "Q" << " ";
+}
+cout << endl;
+}
+cout << endl;
+return true;
+}
+for (int i=0; i<n; i++) {
+if (isSafe(board, i, col)) {
+board[i][col] = 1;
+if (solveNQueens(board, col + 1)) return true;
+board[i][col] = 0;
+}
+}
+return false;
+}
+int main(){
+vector<vector<int> > board(n, vector<int>(n, 0));
+if (!solveNQueens(board, 0))
+cout << "No solution found";
+return 0;
+}
+
+
+
+
+
+
+
+
+
+
+#include <iostream>
+#include <vector>
+using namespace std;
+int n = 8;
+
+bool isSafe(const vector<vector<int>>& board, int row, int col){
+    for (int x=0; x<col; x++)
+        if (board[row][x] == 1) return false;
+    for (int x=row, y=col; x >= 0 && y >= 0; x--, y--)
+        if (board[x][y] == 1) return false;
+    for (int x=row, y=col; x<n && y >= 0; x++, y--)
+        if (board[x][y] == 1) return false;
+    return true;
+}
+
+void printBoard(const vector<vector<int>>& board){
+    for (int i=0;i<n;i++){
+        for (int j=0;j<n;j++){
+            cout << (board[i][j] ? 'Q' : '_') << ' ';
+        }
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
+void solveAll(vector<vector<int>>& board, int col, long long &count){
+    if (col == n){
+        printBoard(board);
+        count++;
+        return;
+    }
+    for (int i=0; i<n; ++i){
+        if (isSafe(board, i, col)){
+            board[i][col] = 1;
+            solveAll(board, col+1, count);
+            board[i][col] = 0;
+        }
+    }
+}
+
+int main(){
+    cout << "Enter board size (n): ";
+    if (!(cin >> n)) return 0;
+    vector<vector<int>> board(n, vector<int>(n,0));
+    long long count = 0;
+    solveAll(board, 0, count);
+    cout << "Total solutions: " << count << '\n';
+    return 0;
+}
+
+8
